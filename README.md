@@ -1,5 +1,9 @@
 # n8n-nodes-sarvam
 
+[![npm version](https://img.shields.io/npm/v/n8n-nodes-sarvam.svg)](https://www.npmjs.com/package/n8n-nodes-sarvam)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE.md)
+[![n8n community node](https://img.shields.io/badge/n8n-community%20node-ff6d5a)](https://www.npmjs.com/package/n8n-nodes-sarvam)
+
 This is an n8n community node for [Sarvam AI](https://sarvam.ai) — Indian language AI APIs for transcription, speech synthesis, and chat across 22+ Indian languages.
 
 ## Installation
@@ -25,7 +29,7 @@ In n8n, create a new **Sarvam AI API** credential and paste your API key.
 | Operation | Description |
 |---|---|
 | **Speech to Text** | Transcribe audio files with multiple modes — transcribe, translate to English, transliterate (roman), code-mixed, and verbatim |
-| **Text to Speech** | Convert text to natural-sounding speech with 30+ voice options |
+| **Text to Speech** | Convert text to natural-sounding speech with 39 voice options |
 
 ### Chat
 
@@ -33,9 +37,23 @@ In n8n, create a new **Sarvam AI API** credential and paste your API key.
 |---|---|
 | **Complete** | Generate chat completions using Sarvam AI language models |
 
+## Speech to Text Modes
+
+| Mode | Description |
+|---|---|
+| **Transcribe** | Standard transcription in the original language |
+| **Translate to English** | Translate speech from any Indic language to English |
+| **Transliterate (Roman)** | Romanize speech to Latin script |
+| **Code Mixed** | English words in English, Indic words in native script |
+| **Verbatim** | Exact word-for-word transcription without normalization |
+
 ## Supported Languages
 
-Bengali, English, Gujarati, Hindi, Kannada, Malayalam, Marathi, Odia, Punjabi, Tamil, Telugu, Assamese, Bodo, Dogri, Konkani, Kashmiri, Maithili, Manipuri, Nepali, Sanskrit, Santali, Sindhi, Urdu.
+**Speech to Text (23 languages):** Assamese, Bengali, Bodo, Dogri, English, Gujarati, Hindi, Kannada, Kashmiri, Konkani, Maithili, Malayalam, Manipuri, Marathi, Nepali, Odia, Punjabi, Sanskrit, Santali, Sindhi, Tamil, Telugu, Urdu.
+
+**Text to Speech (11 languages):** Bengali, English, Gujarati, Hindi, Kannada, Malayalam, Marathi, Odia, Punjabi, Tamil, Telugu.
+
+**Chat:** Supports all languages via sarvam-m, sarvam-30b, sarvam-100b, gemma-4b, and gemma-12b models.
 
 ## Resources
 

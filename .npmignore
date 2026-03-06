@@ -1,0 +1,12 @@
+credentials/
+nodes/
+.specstory/
+.cursor/
+.cursorindexingignore
+.git/
+.gitignore
+tsconfig.json
+eslint.config.mjs
+package-lock.json
+*.ts
+!dist/**

@@ -528,6 +528,29 @@ async function handleChatOperations(
 	return await makeApiRequest.call(this, 'POST', '/v1/chat/completions', body);
 }
 
+function formatApiError(error: unknown): string {
+	const err = error as { statusCode?: number; message?: string; body?: { error?: { message?: string }; detail?: string } };
+	const status = err.statusCode;
+	const apiMessage = err.body?.error?.message ?? err.body?.detail ?? err.message ?? 'Unknown error';
+
+	if (status === 401 || status === 403) {
+		return 'Invalid or expired API key. Check your Sarvam AI credential.';
+	}
+	if (status === 402 || apiMessage.includes('insufficient_quota')) {
+		return 'Insufficient API credits. Top up at dashboard.sarvam.ai.';
+	}
+	if (status === 422) {
+		return `Invalid request: ${apiMessage}`;
+	}
+	if (status === 429) {
+		return 'Rate limit exceeded. Please wait and try again.';
+	}
+	if (status && status >= 500) {
+		return `Sarvam API server error (${status}). Try again later.`;
+	}
+	return apiMessage;
+}
+
 async function makeApiRequest(
 	this: IExecuteFunctions,
 	method: string,
@@ -535,16 +558,20 @@ async function makeApiRequest(
 	body: IDataObject,
 ): Promise<IDataObject> {
 	const credentials = await this.getCredentials('sarvamApi');
-	return (await this.helpers.httpRequest({
-		method: method as 'POST',
-		url: `${BASE_URL}${endpoint}`,
-		body,
-		json: true,
-		headers: {
-			'Content-Type': 'application/json',
-			'api-subscription-key': credentials.apiKey as string,
-		},
-	})) as IDataObject;
+	try {
+		return (await this.helpers.httpRequest({
+			method: method as 'POST',
+			url: `${BASE_URL}${endpoint}`,
+			body,
+			json: true,
+			headers: {
+				'Content-Type': 'application/json',
+				'api-subscription-key': credentials.apiKey as string,
+			},
+		})) as IDataObject;
+	} catch (error) {
+		throw new NodeOperationError(this.getNode(), formatApiError(error));
+	}
 }
 
 async function makeFormRequest(
@@ -577,13 +604,17 @@ async function makeFormRequest(
 	parts.push(Buffer.from(`--${boundary}--\r\n`));
 	const body = Buffer.concat(parts);
 
-	return (await this.helpers.httpRequest({
-		method: 'POST',
-		url: `${BASE_URL}${endpoint}`,
-		body,
-		headers: {
-			'Content-Type': `multipart/form-data; boundary=${boundary}`,
-			'api-subscription-key': credentials.apiKey as string,
-		},
-	})) as IDataObject;
+	try {
+		return (await this.helpers.httpRequest({
+			method: 'POST',
+			url: `${BASE_URL}${endpoint}`,
+			body,
+			headers: {
+				'Content-Type': `multipart/form-data; boundary=${boundary}`,
+				'api-subscription-key': credentials.apiKey as string,
+			},
+		})) as IDataObject;
+	} catch (error) {
+		throw new NodeOperationError(this.getNode(), formatApiError(error));
+	}
 }
