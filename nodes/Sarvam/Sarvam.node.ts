@@ -557,16 +557,14 @@ async function makeApiRequest(
 	endpoint: string,
 	body: IDataObject,
 ): Promise<IDataObject> {
-	const credentials = await this.getCredentials('sarvamApi');
 	try {
-		return (await this.helpers.httpRequest({
+		return (await this.helpers.httpRequestWithAuthentication.call(this, 'sarvamApi', {
 			method: method as 'POST',
 			url: `${BASE_URL}${endpoint}`,
 			body,
 			json: true,
 			headers: {
 				'Content-Type': 'application/json',
-				'api-subscription-key': credentials.apiKey as string,
 			},
 		})) as IDataObject;
 	} catch (error) {
@@ -582,8 +580,6 @@ async function makeFormRequest(
 	mimeType: string,
 	extraFields: IDataObject,
 ): Promise<IDataObject> {
-	const credentials = await this.getCredentials('sarvamApi');
-
 	const boundary = `----n8nBoundary${Date.now()}`;
 	const parts: Buffer[] = [];
 
@@ -605,13 +601,12 @@ async function makeFormRequest(
 	const body = Buffer.concat(parts);
 
 	try {
-		return (await this.helpers.httpRequest({
+		return (await this.helpers.httpRequestWithAuthentication.call(this, 'sarvamApi', {
 			method: 'POST',
 			url: `${BASE_URL}${endpoint}`,
 			body,
 			headers: {
 				'Content-Type': `multipart/form-data; boundary=${boundary}`,
-				'api-subscription-key': credentials.apiKey as string,
 			},
 		})) as IDataObject;
 	} catch (error) {
