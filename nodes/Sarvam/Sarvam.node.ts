@@ -406,9 +406,9 @@ export class Sarvam implements INodeType {
 
 				if (resource === 'speech') {
 					const result = await handleSpeechOperations.call(this, operation, i);
-					if (operation === 'textToSpeech') {
-						returnData.push(result as unknown as INodeExecutionData);
-						continue;
+				if (operation === 'textToSpeech') {
+					returnData.push({ ...(result as unknown as INodeExecutionData), pairedItem: { item: i } });
+					continue;
 					}
 					responseData = result;
 				} else if (resource === 'chat') {
@@ -417,10 +417,10 @@ export class Sarvam implements INodeType {
 					throw new NodeOperationError(this.getNode(), `Unknown resource: ${resource}`);
 				}
 
-				returnData.push({ json: responseData });
-			} catch (error) {
-				if (this.continueOnFail()) {
-					returnData.push({ json: { error: (error as Error).message } });
+			returnData.push({ json: responseData, pairedItem: { item: i } });
+		} catch (error) {
+			if (this.continueOnFail()) {
+				returnData.push({ json: { error: (error as Error).message }, pairedItem: { item: i } });
 					continue;
 				}
 				throw error;
