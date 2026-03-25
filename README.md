@@ -53,7 +53,7 @@ In n8n, create a new **Sarvam AI API** credential and paste your API key.
 
 **Text to Speech (11 languages):** Bengali, English, Gujarati, Hindi, Kannada, Malayalam, Marathi, Odia, Punjabi, Tamil, Telugu.
 
-**Chat:** Supports all languages via sarvam-m, sarvam-30b, sarvam-100b, gemma-4b, and gemma-12b models.
+**Chat:** Supports all languages via sarvam-100b and sarvam-30b models.
 
 ## Resources
 
