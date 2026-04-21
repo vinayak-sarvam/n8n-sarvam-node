@@ -1,6 +1,6 @@
 {
 	"name": "n8n-nodes-sarvam",
-	"version": "0.1.4",
+	"version": "0.1.6",
 	"description": "n8n community node for Sarvam AI - Indian language AI APIs for translation, speech, and chat",
 	"keywords": [
 		"n8n-community-node-package"
@@ -13,7 +13,11 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/vinayak-sarvam/n8n-sarvam-node.git"
+		"url": "git+https://github.com/vinayak-sarvam/n8n-sarvam-node.git"
+	},
+	"publishConfig": {
+		"access": "public",
+		"provenance": true
 	},
 	"engines": {
 		"node": ">=22.0"
@@ -24,6 +28,7 @@
 		"build": "n8n-node build",
 		"lint": "n8n-node lint",
 		"lint:fix": "n8n-node lint --fix",
+		"prepublishOnly": "n8n-node prerelease",
 		"release": "n8n-node release"
 	},
 	"files": [
@@ -42,7 +47,8 @@
 		"n8n-workflow": "*"
 	},
 	"devDependencies": {
-		"@n8n/node-cli": "latest",
-		"n8n-workflow": "*"
+		"@n8n/node-cli": "^0.23.1",
+		"n8n-workflow": "*",
+		"release-it": "^19.2.4"
 	}
 }

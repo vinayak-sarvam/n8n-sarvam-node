@@ -53,7 +53,19 @@ In n8n, create a new **Sarvam AI API** credential and paste your API key.
 
 **Text to Speech (11 languages):** Bengali, English, Gujarati, Hindi, Kannada, Malayalam, Marathi, Odia, Punjabi, Tamil, Telugu.
 
-**Chat:** Supports all languages via sarvam-100b and sarvam-30b models.
+**Chat:** Supports all languages via sarvam-105b (flagship) and sarvam-30b models.
+
+## Publishing (maintainers)
+
+Releases go to npm from **GitHub Actions** with [npm provenance](https://docs.npmjs.com/generating-provenance-statements/), per [n8n’s publishing rules](https://docs.n8n.io/integrations/creating-nodes/deploy/submit-community-nodes/).
+
+1. On [npm](https://www.npmjs.com/), add **Trusted Publishers** for this package: GitHub Actions, repository `vinayak-sarvam/n8n-sarvam-node`, workflow **`publish.yml`**. Alternatively, store an **`NPM_TOKEN`** secret in GitHub (granular token with write access to this package).
+2. Either:
+   - **Tag the version already in `package.json`:** with `main` at the version you want (for example `0.1.6`), run `git tag 0.1.6 && git push origin 0.1.6`, **or**
+   - **Interactive bump:** on `main`, run **`npm run release`** to bump the version, update the changelog, commit, tag, and push (nothing is published from your laptop).
+3. Pushing a semver tag matching `*.*.*` triggers [`.github/workflows/publish.yml`](.github/workflows/publish.yml), which runs lint, build, and **`npm publish`** with provenance.
+
+Keep **`package.json` `version` and `nodes/` on `main` aligned** with what you intend to ship; the published tarball must match this repository.
 
 ## Resources
 

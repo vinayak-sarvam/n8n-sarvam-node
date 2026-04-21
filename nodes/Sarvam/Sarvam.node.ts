@@ -289,9 +289,9 @@ export class Sarvam implements INodeType {
 				name: 'chatModel',
 				type: 'options',
 				required: true,
-				default: 'sarvam-100b',
+				default: 'sarvam-105b',
 				options: [
-					{ name: 'Sarvam 100B', value: 'sarvam-100b' },
+					{ name: 'Sarvam 105B', value: 'sarvam-105b' },
 					{ name: 'Sarvam 30B', value: 'sarvam-30b' },
 				],
 				displayOptions: { show: { resource: ['chat'], operation: ['complete'] } },
