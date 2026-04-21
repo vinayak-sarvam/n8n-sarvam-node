@@ -31,11 +31,12 @@
 #      secret still forces broken token auth. OIDC + setup-node needs an explicit
 #      empty NODE_AUTH_TOKEN when publishing — see setup-node#1440.
 #
-# Option B — npm Automation Token (fallback):
-#   1. On npmjs.com: Access Tokens → Generate New Token → Granular Access Token.
-#      Scope it to this package with "Read and write" publish permission.
-#   2. In GitHub: Settings → Secrets and variables → Actions → New secret.
-#      Name it NPM_TOKEN and paste the token value.
+# Option B — npm token (fallback):
+#   1. On npmjs.com: Granular Access Token with Read and write for this package.
+#   2. In GitHub, store it as NPM_TOKEN either:
+#        • Repository secret: Settings → Secrets and variables → Actions, OR
+#        • Environment secret: you MUST set `environment:` on the job below to that
+#          environment’s name (e.g. environment: NPM_TOKEN), or secrets.NPM_TOKEN is empty.
 #
 # Both options work with --provenance. Provenance is signed by GitHub's OIDC
 # infrastructure regardless of how npm authentication is handled.
@@ -68,6 +69,9 @@ jobs:
   publish:
     name: Publish to npm
     runs-on: ubuntu-latest
+    # Required when NPM_TOKEN is an *environment* secret (not a repository secret).
+    # Must match the GitHub Environment name exactly. Remove if NPM_TOKEN is repo-level only.
+    environment: NPM_TOKEN
 
     permissions:
       # Required to mint an OIDC token for npm provenance attestation.
