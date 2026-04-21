@@ -114,10 +114,14 @@ jobs:
           export NPM_TOKEN
           if [ -n "$NPM_TOKEN" ]; then
             echo "Token publish path (NPM_TOKEN length: ${#NPM_TOKEN} chars)"
-            npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN" --location=project
+            case "$NPM_TOKEN" in
+              npm_*) echo "Token prefix: npm_ (granular-style)";;
+              *) echo "::warning::NPM_TOKEN should be a granular token from npmjs.com (usually starts with npm_). Classic tokens are deprecated.";;
+            esac
+            # Prefer env auth only; project .npmrc + env can confuse some npm versions.
             export NODE_AUTH_TOKEN="$NPM_TOKEN"
             echo "npm whoami:"
-            npm whoami
+            npm whoami --registry=https://registry.npmjs.org/
             npm publish --access public --registry=https://registry.npmjs.org/
           else
             echo "OIDC path — NPM_TOKEN empty; Trusted Publishers + NODE_AUTH_TOKEN=\"\""
