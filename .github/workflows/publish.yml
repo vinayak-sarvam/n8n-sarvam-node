@@ -80,24 +80,32 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          # Trusted publishing requires Node ≥22.14 (npm docs).
+          node-version: '22.14'
           cache: 'npm'
           registry-url: 'https://registry.npmjs.org'
+
+      # OIDC registry token exchange + publish requires npm CLI ≥11.5.1 (npm docs).
+      # ubuntu/node images often ship npm 10.x; upgrade avoids bogus E404 on PUT.
+      - name: Upgrade npm for registry publish
+        run: npm install -g npm@^11.5.1 && node -v && npm -v
 
       - name: Install dependencies
         run: npm ci
 
       - name: Release
         # Publishes to npm with a provenance attestation (requires id-token: write above).
-        # setup-node + registry-url wires auth through NODE_AUTH_TOKEN (see npm docs).
-        # If NPM_TOKEN is set, export it as NODE_AUTH_TOKEN. If unset/empty, leave
-        # NODE_AUTH_TOKEN unset so Trusted Publishers (OIDC) can publish without a secret.
+        # If NPM_TOKEN is set, npm uses it (must be a write-capable token for this package).
+        # If NPM_TOKEN is unset/empty, npm uses Trusted Publishers (OIDC) — remove a bad
+        # NPM_TOKEN secret or npm will prefer the broken token over OIDC.
         run: |
           set -euo pipefail
           if [ -n "${NPM_TOKEN:-}" ]; then
             export NODE_AUTH_TOKEN="$NPM_TOKEN"
+            echo "Publishing with NPM_TOKEN (granular/automation token)."
           else
             unset NODE_AUTH_TOKEN || true
+            echo "Publishing without NPM_TOKEN (Trusted Publishers / OIDC only)."
           fi
           npm run release
         env:

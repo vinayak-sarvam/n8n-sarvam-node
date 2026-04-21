@@ -67,6 +67,8 @@ Releases go to npm from **GitHub Actions** with [npm provenance](https://docs.np
 
 Keep **`package.json` `version` and `nodes/` on `main` aligned** with what you intend to ship; the published tarball must match this repository.
 
+If the **Publish** workflow shows provenance then **`E404` on `PUT …/n8n-nodes-sarvam`**: upgrade steps in the workflow are required (npm **≥11.5.1**, Node **≥22.14**). Also confirm **`repository.url`** matches `https://github.com/vinayak-sarvam/n8n-sarvam-node.git`, that **Trusted Publishers** on npm matches this repo and **`publish.yml`**, and that **`NPM_TOKEN`** is either unset (OIDC only) or a valid **write** token for this package — a bad token is used instead of OIDC when the secret is set.
+
 ## Resources
 
 - [Sarvam AI Documentation](https://docs.sarvam.ai)
