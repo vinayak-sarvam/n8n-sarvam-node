@@ -82,13 +82,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # No registry-url: it injects deprecated always-auth into ~/.npmrc (npm 11 warns) and
+      # is not required for public npm ci. Auth for publish is set explicitly below.
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          # Trusted publishing requires Node ≥22.14 (npm docs).
           node-version: '22.14'
           cache: 'npm'
-          registry-url: 'https://registry.npmjs.org'
 
       # OIDC registry token exchange + publish requires npm CLI ≥11.5.1 (npm docs).
       - name: Upgrade npm for registry publish
@@ -109,14 +109,19 @@ jobs:
           export NPM_CONFIG_PROVENANCE=true
           npm run lint
           npm run build
-          if [ -n "${NPM_TOKEN:-}" ]; then
+          # Trim accidental newlines from GitHub secret values
+          NPM_TOKEN="$(printf '%s' "${NPM_TOKEN:-}")"
+          export NPM_TOKEN
+          if [ -n "$NPM_TOKEN" ]; then
+            echo "Token publish path (NPM_TOKEN length: ${#NPM_TOKEN} chars)"
+            npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN" --location=project
             export NODE_AUTH_TOKEN="$NPM_TOKEN"
-            echo "Token publish path — npm whoami:"
+            echo "npm whoami:"
             npm whoami
-            npm publish --access public
+            npm publish --access public --registry=https://registry.npmjs.org/
           else
-            echo "OIDC / Trusted Publishers path — publishing with NODE_AUTH_TOKEN empty."
-            NODE_AUTH_TOKEN="" npm publish --access public
+            echo "OIDC path — NPM_TOKEN empty; Trusted Publishers + NODE_AUTH_TOKEN=\"\""
+            NODE_AUTH_TOKEN="" npm publish --access public --registry=https://registry.npmjs.org/
           fi
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
