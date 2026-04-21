@@ -93,23 +93,26 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Release
-        # Provenance: id-token: write + npm ≥11.5.1.
-        # Token path: NODE_AUTH_TOKEN from NPM_TOKEN secret.
-        # OIDC path: must run with NODE_AUTH_TOKEN="" so npm uses Trusted Publishers
-        # (setup-node + registry-url otherwise leaves a placeholder that blocks OIDC).
-        # https://github.com/actions/setup-node/issues/1440
+      # CI must call `npm publish` in this shell so NODE_AUTH_TOKEN (token or empty for OIDC)
+      # is guaranteed for the publish process. `n8n-node release` spawns npm publish with a
+      # partial env object which can drop OIDC/token auth and yield ENEEDAUTH.
+      - name: Lint, build, and publish
         run: |
           set -euo pipefail
           npm config delete //registry.npmjs.org/:_authToken 2>/dev/null || true
+          unset NODE_AUTH_TOKEN || true
+          export RELEASE_MODE=true
+          export NPM_CONFIG_PROVENANCE=true
+          npm run lint
+          npm run build
           if [ -n "${NPM_TOKEN:-}" ]; then
             export NODE_AUTH_TOKEN="$NPM_TOKEN"
-            echo "npm whoami (token publish path):"
+            echo "Token publish path — npm whoami:"
             npm whoami
-            npm run release
+            npm publish --access public
           else
-            echo "OIDC / Trusted Publishers path (NODE_AUTH_TOKEN forced empty)."
-            NODE_AUTH_TOKEN="" npm run release
+            echo "OIDC / Trusted Publishers path — publishing with NODE_AUTH_TOKEN empty."
+            NODE_AUTH_TOKEN="" npm publish --access public
           fi
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
