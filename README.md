@@ -65,6 +65,16 @@ Releases go to npm from **GitHub Actions** with [npm provenance](https://docs.np
    - **Interactive bump:** on `main`, run **`npm run release`** to bump the version, update the changelog, commit, tag, and push (nothing is published from your laptop).
 3. Pushing a semver tag matching `*.*.*` triggers [`.github/workflows/publish.yml`](.github/workflows/publish.yml), which runs lint, build, and **`npm publish`** with provenance.
 
+### Publish from your machine (interim)
+
+For a **manual** publish while CI is sorted out, log in to npm (`npm login` or a valid `~/.npmrc` token), then from the repo root:
+
+```bash
+npm run publish:cli
+```
+
+That runs lint, build, then **`npm publish`** with **`RELEASE_MODE=true`** (so `prepublishOnly` passes) and **`--provenance=false`** (local publishes cannot satisfy `publishConfig.provenance` the way CI does). **n8n Cloud verification still expects** a GitHub Actions publish with provenance when you submit.
+
 Keep **`package.json` `version` and `nodes/` on `main` aligned** with what you intend to ship; the published tarball must match this repository.
 
 If the **Publish** workflow shows provenance then **`E404` on `PUT …/n8n-nodes-sarvam`**: that response usually means **no publish permission** (not a missing package). Use **npm ≥11.5.1**, Node **≥22.14**, and a **`repository.url`** that matches this GitHub repo. For **Trusted Publishers (OIDC)** only: remove the **`environment: NPM_TOKEN`** line from [`.github/workflows/publish.yml`](.github/workflows/publish.yml) if you do not use that GitHub Environment (otherwise the job can fail before publish). Delete any unused **`NPM_TOKEN`** secret; the workflow uses **`NODE_AUTH_TOKEN=""`** with `registry-url` for OIDC (see [setup-node#1440](https://github.com/actions/setup-node/issues/1440)). For **token publish**, keep **`NPM_TOKEN`**. If that value is stored under **Settings → Environments → … → Environment secrets**, the workflow job must declare **`environment: <that-environment-name>`** (this repo uses **`NPM_TOKEN`**) or GitHub never injects the secret and you get **`ENEEDAUTH`**. Repository-level **Actions** secrets do not need `environment:`. Confirm **`npm whoami`** in the log is **`vinayak-sarvam`**.
