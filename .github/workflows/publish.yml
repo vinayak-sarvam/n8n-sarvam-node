@@ -27,9 +27,9 @@
 #        Repository name:  <your-repo-name>
 #        Workflow name:    publish.yml
 #        Environment:      (leave blank unless you use GitHub Environments)
-#   4. Do NOT create an NPM_TOKEN secret for OIDC publishing. An empty or stale
-#      secret still forces token mode and breaks OIDC (opaque E404 on PUT).
-#      See: https://github.com/actions/setup-node/issues/1440
+#   4. For OIDC only: do not set the NPM_TOKEN secret (or leave it unset). A stale
+#      secret still forces broken token auth. OIDC + setup-node needs an explicit
+#      empty NODE_AUTH_TOKEN when publishing — see setup-node#1440.
 #
 # Option B — npm Automation Token (fallback):
 #   1. On npmjs.com: Access Tokens → Generate New Token → Granular Access Token.
@@ -84,8 +84,7 @@ jobs:
           # Trusted publishing requires Node ≥22.14 (npm docs).
           node-version: '22.14'
           cache: 'npm'
-          # Do NOT set registry-url here: it writes ~/.npmrc + always-auth and an empty
-          # NODE_AUTH_TOKEN placeholder, which breaks npm Trusted Publishing (OIDC).
+          registry-url: 'https://registry.npmjs.org'
 
       # OIDC registry token exchange + publish requires npm CLI ≥11.5.1 (npm docs).
       - name: Upgrade npm for registry publish
@@ -95,20 +94,22 @@ jobs:
         run: npm ci
 
       - name: Release
-        # Provenance: id-token: write (job permissions) + npm ≥11.5.1 above.
-        # Token path: npm config set auth (do not use NODE_AUTH_TOKEN — conflicts with OIDC).
-        # OIDC path: no NPM_TOKEN secret (delete it on GitHub if you use Trusted Publishers).
+        # Provenance: id-token: write + npm ≥11.5.1.
+        # Token path: NODE_AUTH_TOKEN from NPM_TOKEN secret.
+        # OIDC path: must run with NODE_AUTH_TOKEN="" so npm uses Trusted Publishers
+        # (setup-node + registry-url otherwise leaves a placeholder that blocks OIDC).
+        # https://github.com/actions/setup-node/issues/1440
         run: |
           set -euo pipefail
           npm config delete //registry.npmjs.org/:_authToken 2>/dev/null || true
-          unset NODE_AUTH_TOKEN 2>/dev/null || true
           if [ -n "${NPM_TOKEN:-}" ]; then
-            npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"
+            export NODE_AUTH_TOKEN="$NPM_TOKEN"
             echo "npm whoami (token publish path):"
             npm whoami
+            npm run release
           else
-            echo "OIDC / Trusted Publishers path (no NPM_TOKEN secret)."
+            echo "OIDC / Trusted Publishers path (NODE_AUTH_TOKEN forced empty)."
+            NODE_AUTH_TOKEN="" npm run release
           fi
-          npm run release
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
