@@ -67,7 +67,7 @@ Releases go to npm from **GitHub Actions** with [npm provenance](https://docs.np
 
 Keep **`package.json` `version` and `nodes/` on `main` aligned** with what you intend to ship; the published tarball must match this repository.
 
-If the **Publish** workflow shows provenance then **`E404` on `PUT …/n8n-nodes-sarvam`**: upgrade steps in the workflow are required (npm **≥11.5.1**, Node **≥22.14**). Also confirm **`repository.url`** matches `https://github.com/vinayak-sarvam/n8n-sarvam-node.git`, that **Trusted Publishers** on npm matches this repo and **`publish.yml`**, and that **`NPM_TOKEN`** is either unset (OIDC only) or a valid **write** token for this package — a bad token is used instead of OIDC when the secret is set.
+If the **Publish** workflow shows provenance then **`E404` on `PUT …/n8n-nodes-sarvam`**: that response usually means **no publish permission** (not a missing package). Use **npm ≥11.5.1**, Node **≥22.14**, and a **`repository.url`** that matches this GitHub repo. For **Trusted Publishers (OIDC)**, delete the **`NPM_TOKEN`** repository secret entirely if you are not using token publish — an empty or wrong secret still disables OIDC. For **token publish**, use a granular **write** token for **`vinayak-sarvam`** on `n8n-nodes-sarvam` and confirm **`npm whoami`** in the workflow log matches that npm user.
 
 ## Resources
 

@@ -27,8 +27,9 @@
 #        Repository name:  <your-repo-name>
 #        Workflow name:    publish.yml
 #        Environment:      (leave blank unless you use GitHub Environments)
-#   4. Leave the NPM_TOKEN secret unset in this repository. GitHub's OIDC
-#      token is used instead — no secret ever touches your repo settings.
+#   4. Do NOT create an NPM_TOKEN secret for OIDC publishing. An empty or stale
+#      secret still forces token mode and breaks OIDC (opaque E404 on PUT).
+#      See: https://github.com/actions/setup-node/issues/1440
 #
 # Option B — npm Automation Token (fallback):
 #   1. On npmjs.com: Access Tokens → Generate New Token → Granular Access Token.
@@ -83,10 +84,10 @@ jobs:
           # Trusted publishing requires Node ≥22.14 (npm docs).
           node-version: '22.14'
           cache: 'npm'
-          registry-url: 'https://registry.npmjs.org'
+          # Do NOT set registry-url here: it writes ~/.npmrc + always-auth and an empty
+          # NODE_AUTH_TOKEN placeholder, which breaks npm Trusted Publishing (OIDC).
 
       # OIDC registry token exchange + publish requires npm CLI ≥11.5.1 (npm docs).
-      # ubuntu/node images often ship npm 10.x; upgrade avoids bogus E404 on PUT.
       - name: Upgrade npm for registry publish
         run: npm install -g npm@^11.5.1 && node -v && npm -v
 
@@ -94,18 +95,19 @@ jobs:
         run: npm ci
 
       - name: Release
-        # Publishes to npm with a provenance attestation (requires id-token: write above).
-        # If NPM_TOKEN is set, npm uses it (must be a write-capable token for this package).
-        # If NPM_TOKEN is unset/empty, npm uses Trusted Publishers (OIDC) — remove a bad
-        # NPM_TOKEN secret or npm will prefer the broken token over OIDC.
+        # Provenance: id-token: write (job permissions) + npm ≥11.5.1 above.
+        # Token path: npm config set auth (do not use NODE_AUTH_TOKEN — conflicts with OIDC).
+        # OIDC path: no NPM_TOKEN secret (delete it on GitHub if you use Trusted Publishers).
         run: |
           set -euo pipefail
+          npm config delete //registry.npmjs.org/:_authToken 2>/dev/null || true
+          unset NODE_AUTH_TOKEN 2>/dev/null || true
           if [ -n "${NPM_TOKEN:-}" ]; then
-            export NODE_AUTH_TOKEN="$NPM_TOKEN"
-            echo "Publishing with NPM_TOKEN (granular/automation token)."
+            npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"
+            echo "npm whoami (token publish path):"
+            npm whoami
           else
-            unset NODE_AUTH_TOKEN || true
-            echo "Publishing without NPM_TOKEN (Trusted Publishers / OIDC only)."
+            echo "OIDC / Trusted Publishers path (no NPM_TOKEN secret)."
           fi
           npm run release
         env:
